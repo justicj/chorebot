@@ -1,0 +1,87 @@
+chore_sets:
+  daily:
+    set_1:
+      - name: Bathroom Cleaning
+        actions: 
+          - Wipe down the sink and counters
+          - Empty the trash
+          - Remove any items that don't belong.
+      - name: Dishes
+        actions: 
+          - Load the dishwasher
+          - Unload the dishwasher
+          - Wipe down the dining room and kitchen counters/table
+          - Clean the stove
+    set_2:
+      - name: Doggy Care
+        actions: 
+          - Pick up the dog poop in the yard
+          - Take the dogs for a walk
+          - Pick up after the dog, toys, food area.
+          - Make sure someone has fed and watered the dogs.
+      - name: Trash
+        actions: 
+          - Take out all the bathrooms trash
+          - Take out kitchen trash
+          - Thursday Take the trash cans to the curb
+          - Friday Bring the trash cans back from the curb 
+    set_3:
+      - name: Floors
+        actions: 
+          - Run the shark vacuum
+          - Empty the shark vacuum bin
+      - name: Laundry
+        actions: 
+          - Wash 1 load of clothes
+          - Dry 1 load of clothes
+          - Fold the clean clothes
+          - Put away the clean clothes
+          - Empty the dryer lint trap
+          - Straighten the laundry room
+  sunday:
+    set_1:
+      - name: Bathroom Cleaning - Guest and Kids
+        actions: 
+          - Wipe down the sink and counters
+          - Clean the mirrors
+          - Organize items and remove any items that don't belong.
+          - Clean the toilet
+          - Clean the shower/bathtub
+          - Mop the floors
+          - Empty the trash
+          - Refill the toilet paper in all bathrooms
+    set_2:
+      - name: Floor Cleaning
+        actions:
+          - Dust the house, Upstairs and Downstairs
+          - Sweep the floors, Upstairs and Downstairs
+          - Mop the floors exluding the bathrooms
+          - Vacuum the carpets, Upstairs and Downstairs
+          - Clean the shark vacuum (remove the hair and clean the filter)
+    set_3:
+      - name: Kitchen Cleaning
+        actions: 
+          - Organize and Wipe down the kitchen counters
+          - Clean the stove
+          - Clean the microwave
+          - Clean the fridge (remove expired items), wipe down the shelves
+          - Clean the dishwasher
+          - Clean the sink
+          - Sweep and mop the kitchen floor
+          - Clean the dog food area
+kids:
+  Isaiah:
+    email: isaiahjustice07@gmail.com
+    discord_id: 703090801458151485   # Replace with Isaiah's Discord user ID (right-click username → Copy User ID)
+  Jeremiah:
+    email: jeremiahjustice09@gmail.com
+    discord_id: 701603965888102470  # Replace with Jeremiah's Discord user ID
+  Ava:
+    email: avajustice10@gmail.com
+    discord_id: 915033172926922763       # Replace with Ava's Discord user ID
+
+parents:
+  Mom:
+    email: auburnlyn@gmail.com
+  Dad:
+    email: jayjustice@gmail.com

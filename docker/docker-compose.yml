@@ -1,0 +1,14 @@
+services:
+  justicechorebot:
+    build:
+      # Build context is the repo root so the Dockerfile can reach bot/requirements.txt
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: justicechorebot
+    restart: unless-stopped
+    volumes:
+      # Mount bot/ as the working directory so code changes are live without rebuilding
+      - ../bot:/app
+    env_file:
+      # Copy .env.example → .env in the repo root and fill in your values
+      - ../.env
