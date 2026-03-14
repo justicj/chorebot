@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import chore_manager
+import media_manager
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -140,6 +141,112 @@ async def rotatechores(interaction: discord.Interaction):
         interaction.user.name,
         interaction.user.id,
     )
+
+
+# ---------------------------------------------------------------------------
+# Media calendar helpers
+# ---------------------------------------------------------------------------
+def _build_media_embed(data: dict, label: str) -> discord.Embed:
+    """Build a combined Sonarr + Radarr embed for a date range label."""
+    embed = discord.Embed(
+        title=f"📺 Media Calendar — {label}",
+        color=discord.Color.purple(),
+    )
+
+    errors = data.get("errors", {})
+    if errors:
+        embed.add_field(
+            name="⚠️ API Errors",
+            value="\n".join(f"{k}: {v}" for k, v in errors.items()),
+            inline=False,
+        )
+
+    # --- TV (Sonarr) ---
+    sonarr = data.get("sonarr", [])
+    if sonarr:
+        lines = []
+        for ep in sonarr:
+            series = ep.get("series", {}).get("title") or "Unknown"
+            season = ep.get("seasonNumber", "?")
+            episode = ep.get("episodeNumber", "?")
+            title = ep.get("title") or "TBA"
+            air = (ep.get("airDate") or ep.get("airDateUtc") or "")[:10]
+            status = "✅" if ep.get("hasFile") else ("⏳" if ep.get("monitored") else "⏸️")
+            lines.append(f"{status} `{air}` **{series}** S{season:02}E{episode:02} — {title}")
+        embed.add_field(
+            name=f"📡 TV Episodes ({len(sonarr)})",
+            value="\n".join(lines) or "None",
+            inline=False,
+        )
+    else:
+        embed.add_field(name="📡 TV Episodes", value="Nothing scheduled.", inline=False)
+
+    # --- Movies (Radarr) ---
+    radarr = data.get("radarr", [])
+    if radarr:
+        lines = []
+        for movie in radarr:
+            title = movie.get("title") or "Unknown"
+            raw_status = movie.get("status", "")
+            status_label = {
+                "inCinemas": "🎬 In Cinemas",
+                "released": "✅ Released",
+                "announced": "📢 Announced",
+            }.get(raw_status, raw_status.title())
+            has_file = "💾" if movie.get("hasFile") else ""
+            # Show the most relevant upcoming date with a label
+            in_cinemas = (movie.get("inCinemas") or "")[:10]
+            digital = (movie.get("digitalRelease") or "")[:10]
+            physical = (movie.get("physicalRelease") or "")[:10]
+            date_parts = []
+            if in_cinemas:
+                date_parts.append(f"🎟️ Cinemas: `{in_cinemas}`")
+            if digital:
+                date_parts.append(f"💿 Digital: `{digital}`")
+            if physical:
+                date_parts.append(f"📦 Physical: `{physical}`")
+            dates_str = "  ".join(date_parts) if date_parts else "Date TBA"
+            lines.append(f"{has_file} **{title}** — {status_label}\n> {dates_str}")
+        embed.add_field(
+            name=f"🎬 Movies ({len(radarr)})",
+            value="\n\n".join(lines) or "None",
+            inline=False,
+        )
+    else:
+        embed.add_field(name="🎬 Movies", value="Nothing scheduled.", inline=False)
+
+    if not sonarr and not radarr and not errors:
+        embed.description = "Nothing on the calendar for this period."
+
+    return embed
+
+
+@bot.tree.command(
+    name="mediatoday",
+    description="Show today's Sonarr and Radarr calendar entries",
+)
+async def mediatoday(interaction: discord.Interaction):
+    await interaction.response.defer()
+    from datetime import date, timedelta
+    today = date.today()
+    data = await media_manager.fetch_calendar(today, today + timedelta(days=1))
+    embed = _build_media_embed(data, today.strftime("%A, %b %d"))
+    await interaction.followup.send(embed=embed)
+
+
+@bot.tree.command(
+    name="mediaweek",
+    description="Show today's + next 7 days of Sonarr and Radarr calendar entries",
+)
+async def mediaweek(interaction: discord.Interaction):
+    await interaction.response.defer()
+    from datetime import date, timedelta
+    today = date.today()
+    end = today + timedelta(days=8)
+    data = await media_manager.fetch_calendar(today, end)
+    label = f"{today.strftime('%b %d')} – {end.strftime('%b %d')}"
+    embed = _build_media_embed(data, label)
+    await interaction.followup.send(embed=embed)
 
 
 # ---------------------------------------------------------------------------
