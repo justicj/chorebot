@@ -1,13 +1,16 @@
+import asyncio
 import logging
 import os
 from datetime import datetime
 
 import discord
+import httpx
 import pytz
 from discord import app_commands
 from discord.ext import commands, tasks
 
 import chore_manager
+import home_assistant
 import media_manager
 
 # ---------------------------------------------------------------------------
@@ -219,6 +222,53 @@ def _build_media_embed(data: dict, label: str) -> discord.Embed:
         embed.description = "Nothing on the calendar for this period."
 
     return embed
+
+
+# ---------------------------------------------------------------------------
+# Home Assistant commands
+# ---------------------------------------------------------------------------
+_LIGHT_CHOICES = [
+    app_commands.Choice(name="Living Room", value="living room"),
+]
+
+
+@bot.tree.command(name="light", description="Turn a light on or off")
+@app_commands.describe(
+    room="Which light to control",
+    action="on or off",
+)
+@app_commands.choices(
+    room=_LIGHT_CHOICES,
+    action=[
+        app_commands.Choice(name="on", value="on"),
+        app_commands.Choice(name="off", value="off"),
+    ],
+)
+async def light(interaction: discord.Interaction, room: str, action: str):
+    entity_id = home_assistant.LIGHTS.get(room)
+    if not entity_id:
+        await interaction.response.send_message(
+            f"Unknown light: **{room}**.", ephemeral=True
+        )
+        return
+
+    await interaction.response.defer()
+    try:
+        turn_on = action == "on"
+        await home_assistant.set_light(entity_id, turn_on=turn_on)
+        await asyncio.sleep(1)
+        state = await home_assistant.get_light_state(entity_id)
+        current = state.get("state", "unknown")
+        friendly = state.get("attributes", {}).get("friendly_name", entity_id)
+        icon = "💡" if current == "on" else "🌑"
+        await interaction.followup.send(
+            f"{icon} **{friendly}** is now **{current}**."
+        )
+    except httpx.HTTPError as exc:
+        logger.error("HA light command failed: %s", exc)
+        await interaction.followup.send(
+            "⚠️ Failed to reach Home Assistant. Check the logs."
+        )
 
 
 @bot.tree.command(
